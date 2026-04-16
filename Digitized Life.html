@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字化人生 - 事件驱动属性成长</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 24px;
+        }
+        .app {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            align-items: flex-start;
+        }
+        /* 三列布局 */
+        .col {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            padding: 20px;
+            flex: 1;
+            min-width: 280px;
+        }
+        .col-large {
+            flex: 1.5;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            border-left: 5px solid #4a90e2;
+            padding-left: 16px;
+            margin-bottom: 20px;
+        }
+        h3 {
+            font-size: 1.1rem;
+            margin: 16px 0 8px 0;
+            color: #2c3e50;
+        }
+        .attr-item, .event-card {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            border: 1px solid #e2e8f0;
+        }
+        .attr-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .attr-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #0f3b5c;
+        }
+        .attr-value {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #e67e22;
+            background: white;
+            padding: 0 12px;
+            border-radius: 40px;
+            display: inline-block;
+        }
+        .event-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .effect-list {
+            background: #ffffffcc;
+            border-radius: 16px;
+            padding: 8px 12px;
+            margin: 10px 0;
+            font-size: 0.85rem;
+        }
+        .effect-tag {
+            background: #e9ecef;
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 30px;
+            margin: 4px 6px 4px 0;
+        }
+        button {
+            background: #4a90e2;
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+            margin: 4px 4px 0 0;
+        }
+        button.small {
+            background: #6c757d;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.success {
+            background: #28a745;
+        }
+        button.warning {
+            background: #e67e22;
+        }
+        button:hover {
+            filter: brightness(0.92);
+            transform: scale(0.98);
+        }
+        .add-area {
+            background: #eef2ff;
+            border-radius: 20px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        input, select {
+            padding: 8px 12px;
+            border-radius: 40px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 0.85rem;
+        }
+        canvas {
+            background: #fef9e8;
+            border-radius: 20px;
+            width: 100%;
+            height: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .note {
+            font-size: 12px;
+            color: #5b6e8c;
+            margin-top: 12px;
+            text-align: center;
+        }
+        hr {
+            margin: 16px 0;
+        }
+        .remove-effect {
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- 左侧：全局属性管理 -->
+    <div class="col">
+        <h2>📊 数字化属性</h2>
+        <div id="attributesList"></div>
+        <div class="add-area">
+            <h3>➕ 新增属性</h3>
+            <div class="flex-row">
+                <input type="text" id="newAttrName" placeholder="属性名 (例: 智慧)" style="flex:2;">
+                <input type="number" id="newAttrInitValue" placeholder="初始点数" value="20" style="flex:1;">
+                <button id="addAttributeBtn">添加</button>
+            </div>
+            <div class="note">✨ 点数无上限，只保证不低于0</div>
+        </div>
+    </div>
+
+    <!-- 中间：事件库（每个事件下面关联属性影响） -->
+    <div class="col col-large">
+        <h2>⚡ 人生事件库</h2>
+        <div id="eventsList"></div>
+        <div class="add-area">
+            <h3>➕ 新建事件</h3>
+            <div class="flex-row">
+                <input type="text" id="newEventName" placeholder="事件名称 (例: 攻克难题)" style="flex:3;">
+                <button id="addEventBtn">创建事件</button>
+            </div>
+            <div class="note">📌 点击事件将触发其关联的所有属性点数变化（可正可负）</div>
+        </div>
+    </div>
+
+    <!-- 右侧：雷达图输出 -->
+    <div class="col">
+        <h2>🎯 人生雷达图</h2>
+        <canvas id="radarCanvas" width="450" height="450" style="width:100%; height:auto; max-width:450px; max-height:450px"></canvas>
+        <div class="note">每个顶点显示当前点数，雷达图根据最大值动态缩放</div>
+        <button id="globalResetBtn" class="warning" style="width:100%; margin-top:20px;">🔄 重置默认人生</button>
+    </div>
+</div>
+
+<script>
+    // ------------------- 数据模型 -------------------
+    // 属性数组：{ id, name, value }
+    let attributes = [];
+    // 事件数组：{ id, name, effects: [{ attrId, delta }] }
+    let events = [];
+
+    // 辅助：确保数值>=0
+    function clampNonNegative(val) {
+        return Math.max(0, val);
+    }
+
+    // 生成唯一ID
+    function genId() {
+        return Date.now() + '-' + Math.random().toString(36).substr(2, 8);
+    }
+
+    // ------------------- 默认初始数据 -------------------
+    function getDefaultAttributes() {
+        return [
+            { id: "attr_1", name: "智慧", value: 28 },
+            { id: "attr_2", name: "健康", value: 35 },
+            { id: "attr_3", name: "财富", value: 18 },
+            { id: "attr_4", name: "社交", value: 22 },
+            { id: "attr_5", name: "快乐", value: 30 }
+        ];
+    }
+
+    function getDefaultEvents() {
+        const attrs = getDefaultAttributes();
+        const findId = (name) => attrs.find(a => a.name === name)?.id;
+        return [
+            {
+                id: "evt_1",
+                name: "📚 攻克技术难题",
+                effects: [
+                    { attrId: findId("智慧"), delta: 12 },
+                    { attrId: findId("快乐"), delta: 5 },
+                    { attrId: findId("健康"), delta: -2 }
+                ]
+            },
+            {
+                id: "evt_2",
+                name: "🏞️ 周末郊游",
+                effects: [
+                    { attrId: findId("健康"), delta: 8 },
+                    { attrId: findId("快乐"), delta: 10 },
+                    { attrId: findId("财富"), delta: -3 },
+                    { attrId: findId("社交"), delta: 7 }
+                ]
+            },
+            {
+                id: "evt_3",
+                name: "💼 加班项目奖金",
+                effects: [
+                    { attrId: findId("财富"), delta: 20 },
+                    { attrId: findId("健康"), delta: -6 },
+                    { attrId: findId("快乐"), delta: -4 }
+                ]
+            }
+        ];
+    }
+
+    // 重置为默认
+    function resetToDefault() {
+        attributes = getDefaultAttributes();
+        events = getDefaultEvents();
+        // 重新绑定事件中的 attrId 确保指向正确（因为重新生成attributes，id不同）
+        const newEvents = [];
+        for (let ev of getDefaultEvents()) {
+            const newEffects = [];
+            for (let eff of ev.effects) {
+                // 根据属性名称匹配新的id
+                const targetAttr = attributes.find(a => a.name === getAttrNameFromIdInDefault(eff.attrId));
+                if (targetAttr) {
+                    newEffects.push({ attrId: targetAttr.id, delta: eff.delta });
+                }
+            }
+            newEvents.push({ ...ev, id: genId(), effects: newEffects });
+        }
+        events = newEvents;
+        renderAll();
+    }
+
+    // 辅助：从默认事件的attrId获取属性名（简单映射）
+    function getAttrNameFromIdInDefault(id) {
+        const defaultAttrs = getDefaultAttributes();
+        const found = defaultAttrs.find(a => a.id === id);
+        return found ? found.name : "";
+    }
+
+    // 更新属性值（通过事件触发）
+    function applyEvent(eventId) {
+        const ev = events.find(e => e.id === eventId);
+        if (!ev) return;
+        for (let effect of ev.effects) {
+            const attr = attributes.find(a => a.id === effect.attrId);
+            if (attr) {
+                let newVal = attr.value + effect.delta;
+                attr.value = clampNonNegative(newVal);
+            }
+        }
+        renderAll();
+    }
+
+    // ------------------- 属性管理 -------------------
+    function addAttribute(name, initialValue) {
+        if (!name.trim()) return alert("属性名不能为空");
+        if (attributes.some(a => a.name === name.trim())) return alert("属性名已存在");
+        attributes.push({
+            id: genId(),
+            name: name.trim(),
+            value: clampNonNegative(Number(initialValue) || 0)
+        });
+        renderAll();
+    }
+
+    function deleteAttribute(attrId) {
+        if (attributes.length <= 2) {
+            alert("至少保留2个属性，以保证雷达图有意义");
+            return;
+        }
+        // 同时从所有事件中移除该属性的影响项
+        attributes = attributes.filter(a => a.id !== attrId);
+        for (let ev of events) {
+            ev.effects = ev.effects.filter(e => e.attrId !== attrId);
+        }
+        renderAll();
+    }
+
+    // ------------------- 事件管理 -------------------
+    function addEvent(eventName) {
+        if (!eventName.trim()) return alert("事件名称不能为空");
+        events.push({
+            id: genId(),
+            name: eventName.trim(),
+            effects: []
+        });
+        renderAll();
+    }
+
+    function deleteEvent(eventId) {
+        events = events.filter(e => e.id !== eventId);
+        renderAll();
+    }
+
+    // 为事件添加一个属性影响项
+    function addEffectToEvent(eventId, attrId, delta) {
+        const ev = events.find(e => e.id === eventId);
+        if (!ev) return;
+        if (!attrId) return alert("请选择属性");
+        // 避免重复添加同一个属性的影响（可覆盖？这里允许重复，但可去重限制）
+        if (ev.effects.some(e => e.attrId === attrId)) {
+            alert("该事件已包含此属性，如需修改请删除原影响项后重新添加");
+            return;
+        }
+        ev.effects.push({ attrId, delta: Number(delta) });
+        renderAll();
+    }
+
+    function removeEffectFromEvent(eventId, attrId) {
+        const ev = events.find(e => e.id === eventId);
+        if (ev) {
+            ev.effects = ev.effects.filter(e => e.attrId !== attrId);
+            renderAll();
+        }
+    }
+
+    // ------------------- UI 渲染 -------------------
+    function renderAttributesPanel() {
+        const container = document.getElementById('attributesList');
+        if (!container) return;
+        container.innerHTML = '';
+        for (let attr of attributes) {
+            const div = document.createElement('div');
+            div.className = 'attr-item';
+            div.innerHTML = `
+                <div class="attr-header">
+                    <span class="attr-name">${escapeHtml(attr.name)}</span>
+                    <div>
+                        <span class="attr-value">${Math.floor(attr.value)}</span>
+                        <button class="small danger" data-id="${attr.id}" style="margin-left:8px;">删除</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+        // 绑定删除按钮
+        document.querySelectorAll('#attributesList .danger').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                deleteAttribute(id);
+            };
+        });
+    }
+
+    function renderEventsPanel() {
+        const container = document.getElementById('eventsList');
+        if (!container) return;
+        container.innerHTML = '';
+        for (let ev of events) {
+            const card = document.createElement('div');
+            card.className = 'event-card';
+            // 标题栏
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'event-title';
+            titleDiv.innerHTML = `
+                <span>${escapeHtml(ev.name)}</span>
+                <button class="small danger" data-id="${ev.id}">🗑️ 删除事件</button>
+            `;
+            card.appendChild(titleDiv);
+            
+            // 影响列表展示
+            const effectDiv = document.createElement('div');
+            effectDiv.className = 'effect-list';
+            if (ev.effects.length === 0) {
+                effectDiv.innerHTML = '<em style="color:#888;">暂无影响属性，请添加</em>';
+            } else {
+                for (let eff of ev.effects) {
+                    const attr = attributes.find(a => a.id === eff.attrId);
+                    if (!attr) continue;
+                    const deltaStr = eff.delta > 0 ? `+${eff.delta}` : `${eff.delta}`;
+                    const tag = document.createElement('span');
+                    tag.className = 'effect-tag';
+                    tag.innerHTML = `${escapeHtml(attr.name)} : ${deltaStr} 
+                        <span class="remove-effect" data-event="${ev.id}" data-attr="${eff.attrId}" style="cursor:pointer;">✖</span>`;
+                    effectDiv.appendChild(tag);
+                }
+            }
+            card.appendChild(effectDiv);
+            
+            // 添加影响项的表单
+            const addEffectForm = document.createElement('div');
+            addEffectForm.style.marginTop = '12px';
+            addEffectForm.style.display = 'flex';
+            addEffectForm.style.flexWrap = 'wrap';
+            addEffectForm.style.gap = '8px';
+            addEffectForm.style.alignItems = 'center';
+            
+            const attrSelect = document.createElement('select');
+            attrSelect.innerHTML = '<option value="">选择属性</option>';
+            for (let attr of attributes) {
+                attrSelect.innerHTML += `<option value="${attr.id}">${escapeHtml(attr.name)} (当前${Math.floor(attr.value)})</option>`;
+            }
+            const deltaInput = document.createElement('input');
+            deltaInput.type = 'number';
+            deltaInput.placeholder = '点数变化';
+            deltaInput.value = '5';
+            deltaInput.style.width = '90px';
+            const addBtn = document.createElement('button');
+            addBtn.textContent = '添加影响';
+            addBtn.className = 'small';
+            addBtn.onclick = () => {
+                const attrId = attrSelect.value;
+                const delta = parseFloat(deltaInput.value);
+                if (!attrId) return alert("请选择属性");
+                if (isNaN(delta)) return alert("请输入有效点数");
+                addEffectToEvent(ev.id, attrId, delta);
+            };
+            
+            addEffectForm.appendChild(attrSelect);
+            addEffectForm.appendChild(deltaInput);
+            addEffectForm.appendChild(addBtn);
+            card.appendChild(addEffectForm);
+            
+            // 触发事件的按钮
+            const triggerBtn = document.createElement('button');
+            triggerBtn.textContent = '▶ 执行此事件';
+            triggerBtn.style.background = '#28a745';
+            triggerBtn.style.width = '100%';
+            triggerBtn.style.marginTop = '12px';
+            triggerBtn.onclick = () => applyEvent(ev.id);
+            card.appendChild(triggerBtn);
+            
+            container.appendChild(card);
+        }
+        
+        // 绑定删除事件按钮
+        document.querySelectorAll('#eventsList .danger').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                deleteEvent(id);
+            };
+        });
+        // 绑定移除影响项的按钮（事件委托）
+        document.querySelectorAll('#eventsList .remove-effect').forEach(el => {
+            el.onclick = (e) => {
+                e.stopPropagation();
+                const eventId = el.getAttribute('data-event');
+                const attrId = el.getAttribute('data-attr');
+                if (eventId && attrId) removeEffectFromEvent(eventId, attrId);
+            };
+        });
+    }
+    
+    // 雷达图绘制（无上限动态缩放，显示点数）
+    function drawRadar() {
+        const canvas = document.getElementById('radarCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        const centerX = w / 2, centerY = h / 2;
+        const maxRadius = Math.min(w, h) * 0.35;
+        
+        const count = attributes.length;
+        if (count === 0) return;
+        const attrNames = attributes.map(a => a.name);
+        const attrValues = attributes.map(a => a.value);
+        const maxValue = Math.max(...attrValues, 1);
+        
+        const angleStep = (Math.PI * 2) / count;
+        const startAngle = -Math.PI / 2;
+        
+        ctx.clearRect(0, 0, w, h);
+        
+        // 轴线
+        for (let i = 0; i < count; i++) {
+            const angle = startAngle + i * angleStep;
+            const x = centerX + maxRadius * Math.cos(angle);
+            const y = centerY + maxRadius * Math.sin(angle);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = "#bbb";
+            ctx.stroke();
+            
+            const labelRadius = maxRadius + 18;
+            const labelX = centerX + labelRadius * Math.cos(angle);
+            const labelY = centerY + labelRadius * Math.sin(angle);
+            ctx.font = "bold 13px 'Segoe UI'";
+            ctx.fillStyle = "#2c3e50";
+            ctx.fillText(attrNames[i], labelX - 12, labelY - 5);
+        }
+        
+        // 辅助圆动态
+        const ratios = [0.25, 0.5, 0.75, 1.0];
+        for (let rRatio of ratios) {
+            const r = maxRadius * rRatio;
+            ctx.beginPath();
+            for (let i = 0; i <= count; i++) {
+                const angle = startAngle + i * angleStep;
+                const x = centerX + r * Math.cos(angle);
+                const y = centerY + r * Math.sin(angle);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = "#ddd";
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.font = "9px sans-serif";
+            ctx.fillStyle = "#888";
+            const valAtLevel = Math.floor(maxValue * rRatio);
+            if (rRatio === 1.0) {
+                ctx.fillText(`MAX:${valAtLevel}`, centerX + maxRadius + 5, centerY - 8);
+            } else {
+                const angleRef = startAngle;
+                const refX = centerX + r * Math.cos(angleRef) + 5;
+                const refY = centerY + r * Math.sin(angleRef) - 3;
+                ctx.fillText(`${valAtLevel}`, refX, refY);
+            }
+        }
+        
+        // 数据多边形
+        const points = [];
+        for (let i = 0; i < count; i++) {
+            const value = attrValues[i];
+            const r = (value / maxValue) * maxRadius;
+            const angle = startAngle + i * angleStep;
+            const x = centerX + r * Math.cos(angle);
+            const y = centerY + r * Math.sin(angle);
+            points.push({ x, y, value });
+        }
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(74, 144, 226, 0.25)";
+        ctx.fill();
+        ctx.strokeStyle = "#4a90e2";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        
+        for (let p of points) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = "#e67e22";
+            ctx.fill();
+            ctx.font = "bold 12px 'Segoe UI'";
+            ctx.fillStyle = "#d35400";
+            ctx.fillText(Math.floor(p.value), p.x + 8, p.y - 5);
+        }
+        
+        ctx.font = "bold 14px sans-serif";
+        ctx.fillStyle = "#2c3e50";
+        ctx.fillText("📈 人生状态", centerX - 40, centerY + 12);
+    }
+    
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function renderAll() {
+        renderAttributesPanel();
+        renderEventsPanel();
+        drawRadar();
+    }
+    
+    // 初始化及绑定外部控件
+    function bindGlobalControls() {
+        document.getElementById('addAttributeBtn').onclick = () => {
+            const name = document.getElementById('newAttrName').value;
+            const initVal = document.getElementById('newAttrInitValue').value;
+            addAttribute(name, initVal);
+            document.getElementById('newAttrName').value = '';
+            document.getElementById('newAttrInitValue').value = '20';
+        };
+        document.getElementById('addEventBtn').onclick = () => {
+            const name = document.getElementById('newEventName').value;
+            addEvent(name);
+            document.getElementById('newEventName').value = '';
+        };
+        document.getElementById('globalResetBtn').onclick = () => {
+            resetToDefault();
+        };
+    }
+    
+    // 启动
+    function init() {
+        attributes = getDefaultAttributes();
+        events = getDefaultEvents();
+        // 确保事件中的attrId匹配默认属性id
+        const defaultAttrs = getDefaultAttributes();
+        for (let ev of events) {
+            const newEffects = [];
+            for (let eff of ev.effects) {
+                const matchedAttr = defaultAttrs.find(a => a.id === eff.attrId);
+                if (matchedAttr) {
+                    const currentAttr = attributes.find(a => a.name === matchedAttr.name);
+                    if (currentAttr) newEffects.push({ attrId: currentAttr.id, delta: eff.delta });
+                }
+            }
+            ev.effects = newEffects;
+        }
+        renderAll();
+        bindGlobalControls();
+    }
+    init();
+</script>
+</body>
+</html>
